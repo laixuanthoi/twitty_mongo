@@ -1,0 +1,16 @@
+{
+  "name": "twitty_sqlite",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "run": "nodemon index"
+  },
+  "dependencies": {
+    "axios": "^0.21.1",
+    "mongoose": "^5.13.5",
+    "node-telegram-bot-api": "^0.54.0",
+    "puppeteer": "^10.1.0"
+  },
+  "type": "module"
+}
