@@ -168,7 +168,18 @@ const look_up_user = async (screen_name) => {
 
 const getLoginSession = async (username, password) => {
   return new Promise(async (resolve, reject) => {
-    const browser = await puppeteer.launch({ headless: true });
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: [
+        "--disable-gpu",
+        "--disable-dev-shm-usage",
+        "--disable-setuid-sandbox",
+        "--no-first-run",
+        "--no-sandbox",
+        "--no-zygote",
+        "--single-process",
+      ],
+    });
     try {
       const page = await browser.newPage();
       await page.setUserAgent(
@@ -249,7 +260,18 @@ const lookup_user_no_auth = (screen_name) => {
 
 const get_friend_count = (screen_name) => {
   return new Promise(async (resolve, reject) => {
-    const browser = await puppeteer.launch({ headless: true });
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: [
+        "--disable-gpu",
+        "--disable-dev-shm-usage",
+        "--disable-setuid-sandbox",
+        "--no-first-run",
+        "--no-sandbox",
+        "--no-zygote",
+        "--single-process",
+      ],
+    });
     try {
       const page = await browser.newPage();
       await page.setUserAgent(
