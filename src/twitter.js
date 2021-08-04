@@ -257,7 +257,7 @@ const get_friend_count = (screen_name) => {
       );
       await page.goto(`https://twitter.com/${screen_name}`);
       const e = `a[href="/${screen_name}/following"]>span>span`;
-      await page.waitForSelector(e);
+      await page.waitForSelector(e, { timeout: 0 });
       const element = await page.$(e);
       const friends_count = await page.evaluate(
         (element) => element.textContent,
