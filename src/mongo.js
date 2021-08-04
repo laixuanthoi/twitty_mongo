@@ -2,7 +2,8 @@ import mongoose from "mongoose";
 const { Schema } = mongoose;
 
 mongoose.connect(
-  "mongodb+srv://thoi:12345@cluster0.vzj6r.mongodb.net/Twitty",
+  // "mongodb+srv://thoi:12345@cluster0.vzj6r.mongodb.net/Twitty",
+  "mongodb://127.0.0.1:27017/twitty",
   {
     useNewUrlParser: true,
     useUnifiedTopology: true,

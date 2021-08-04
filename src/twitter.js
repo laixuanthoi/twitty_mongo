@@ -1,6 +1,6 @@
-import axios from "./axiosClient.js";
 import puppeteer from "puppeteer";
 import axiosClient from "./axiosClient.js";
+import axios from "axios";
 
 const getFriendList = async (
   user_id,
@@ -9,7 +9,7 @@ const getFriendList = async (
   cursor = -1
 ) => {
   return new Promise((resolve, reject) => {
-    axios
+    axiosClient
       .request({
         method: "get",
         url: "friends/list.json",
@@ -51,7 +51,7 @@ const getAllFriendList = async (_user_id, _screen_name) => {
         );
         _next_cursor = next_cursor;
         users.map((item) => arr_users.push(item));
-        console.log(arr_users.length);
+        // console.log(arr_users.length);
       }
       return resolve(arr_users);
     } catch (error) {
@@ -67,7 +67,7 @@ const getFollowerList = async (
   cursor = -1
 ) => {
   return new Promise((resolve, reject) => {
-    axios
+    axiosClient
       .request({
         method: "get",
         url: "followers/list.json",
@@ -119,7 +119,7 @@ const getAllFollowerList = async (_user_id, _screen_name) => {
 
 const getUserDetail = async (user_id, screen_name) => {
   return new Promise((resolve, reject) => {
-    axios
+    axiosClient
       .request({
         method: "get",
         url: "users/lookup.json",
@@ -145,7 +145,7 @@ const getUserDetail = async (user_id, screen_name) => {
 
 const look_up_user = async (screen_name) => {
   return new Promise((resolve, reject) => {
-    axios
+    axiosClient
       .request({
         method: "get",
         url: "users/show.json",
@@ -178,7 +178,8 @@ const getLoginSession = async (username, password) => {
       await page.waitForSelector("input[name='session[username_or_email]']");
       await page.type("input[name='session[username_or_email]']", username);
       await page.type("input[name='session[password]']", password);
-      await page.click('div[data-testid="LoginForm_Login_Button3"]');
+
+      await page.click('div[data-testid="LoginForm_Login_Button"]');
       await page.waitForTimeout(1000);
       await page.goto("https://twitter.com/home");
       const [response] = await Promise.all([
@@ -202,14 +203,14 @@ const getLoginSession = async (username, password) => {
     } catch (error) {
       reject(error);
     } finally {
-      console.log("close");
-
       await browser.close();
     }
   });
 };
 
-const setAuth = (bearer_token, csrf_token, cookies) => {
+const setAuth = (session) => {
+  const { bearer_token, csrf_token, cookies } = session;
+
   axiosClient.defaults.headers = {
     authorization: bearer_token,
     cookie: cookies,
@@ -218,6 +219,57 @@ const setAuth = (bearer_token, csrf_token, cookies) => {
     "user-agent":
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
   };
+};
+
+const lookup_user_no_auth = (screen_name) => {
+  return new Promise((resolve, reject) => {
+    axios
+      .request({
+        url: "https://twitter.com/i/api/graphql/6GDwe-wtCzeXZ7mPzDz9Rg/UserByScreenNameWithoutResults",
+        method: "GET",
+        params: {
+          variables: {
+            screen_name: screen_name,
+            withSuperFollowsUserFields: false,
+          },
+        },
+        headers: {
+          authorization:
+            "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA",
+          "x-guest-token": "1422868834046808065",
+          "content-type": "application/json",
+        },
+      })
+      .then((response) => {
+        resolve(response.data.data.user.legacy);
+      })
+      .catch((err) => reject(err));
+  });
+};
+
+const get_friend_count = (screen_name) => {
+  return new Promise(async (resolve, reject) => {
+    const browser = await puppeteer.launch({ headless: true });
+    try {
+      const page = await browser.newPage();
+      await page.setUserAgent(
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+      );
+      await page.goto(`https://twitter.com/${screen_name}`);
+      const e = `a[href="/${screen_name}/following"]>span>span`;
+      await page.waitForSelector(e);
+      const element = await page.$(e);
+      const friends_count = await page.evaluate(
+        (element) => element.textContent,
+        element
+      );
+      resolve(friends_count);
+    } catch (error) {
+      reject(error);
+    } finally {
+      await browser.close();
+    }
+  });
 };
 export {
   getFriendList,
@@ -228,4 +280,6 @@ export {
   getFollowerList,
   getAllFollowerList,
   setAuth,
+  lookup_user_no_auth,
+  get_friend_count,
 };
