@@ -258,28 +258,28 @@ const lookup_user_no_auth = (screen_name) => {
   });
 };
 
+const browser1 = await puppeteer.launch({
+  headless: true,
+  args: [
+    "--disable-gpu",
+    "--disable-dev-shm-usage",
+    "--disable-setuid-sandbox",
+    "--no-first-run",
+    "--no-sandbox",
+    "--no-zygote",
+    "--single-process",
+  ],
+});
+const page1 = await browser1.newPage();
+await page1.setUserAgent(
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+);
 const get_friend_count = (screen_name) => {
   return new Promise(async (resolve, reject) => {
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: [
-        "--disable-gpu",
-        "--disable-dev-shm-usage",
-        "--disable-setuid-sandbox",
-        "--no-first-run",
-        "--no-sandbox",
-        "--no-zygote",
-        "--single-process",
-      ],
-    });
     try {
-      const page = await browser.newPage();
-      await page.setUserAgent(
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-      );
-      await page.goto(`https://twitter.com/${screen_name}`);
+      await page1.goto(`https://twitter.com/${screen_name}`);
       const e = `a[href="/${screen_name}/following"]>span>span`;
-      await page.waitForSelector(e, { timeout: 0 });
+      await page1.waitForSelector(e, { timeout: 0 });
       const element = await page.$(e);
       const friends_count = await page.evaluate(
         (element) => element.textContent,
