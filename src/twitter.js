@@ -280,8 +280,8 @@ const get_friend_count = (screen_name) => {
       await page1.goto(`https://twitter.com/${screen_name}`);
       const e = `a[href="/${screen_name}/following"]>span>span`;
       await page1.waitForSelector(e, { timeout: 0 });
-      const element = await page.$(e);
-      const friends_count = await page.evaluate(
+      const element = await page1.$(e);
+      const friends_count = await page1.evaluate(
         (element) => element.textContent,
         element
       );
@@ -289,7 +289,7 @@ const get_friend_count = (screen_name) => {
     } catch (error) {
       reject(error);
     } finally {
-      await browser.close();
+      // await browser1.close();
     }
   });
 };
