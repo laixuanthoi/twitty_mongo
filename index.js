@@ -230,8 +230,8 @@ const spydingFriend = async (dt) => {
         const user = users[i];
 
         const friends_count = await get_friend_count(user.screen_name);
-
-        if (Number(friends_count) != Number(user.friends_count)) {
+        console.log(typeof friends_count, typeof user.friends_count);
+        if (friends_count != user.friends_count) {
           //has new friend
           const new_friend_list = await getAllFriendList(
             user.id_str,
