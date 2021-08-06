@@ -10,7 +10,13 @@ import {
 import { User, Auth } from "./src/mongo.js";
 import axiosClient from "./src/axiosClient.js";
 
-import { bot } from "./src/telegrambot.js";
+// import { bot } from "./src/telegrambot.js";
+
+import TelegramBot from "node-telegram-bot-api";
+
+const token = "1844525211:AAH5lzam-fffd6pLh8Li6rH8uXpS8Gh5lKU";
+
+const bot = new TelegramBot(token, { polling: true });
 
 const loginSession = {
   bearer_token:
