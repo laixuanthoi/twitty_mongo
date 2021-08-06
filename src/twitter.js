@@ -233,28 +233,56 @@ const setAuth = (session) => {
 };
 
 const lookup_user_no_auth = (screen_name) => {
-  return new Promise((resolve, reject) => {
-    axios
-      .request({
-        url: "https://twitter.com/i/api/graphql/6GDwe-wtCzeXZ7mPzDz9Rg/UserByScreenNameWithoutResults",
-        method: "GET",
-        params: {
-          variables: {
-            screen_name: screen_name,
-            withSuperFollowsUserFields: false,
-          },
-        },
-        headers: {
-          authorization:
-            "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA",
-          "x-guest-token": "1422868834046808065",
-          "content-type": "application/json",
-        },
-      })
-      .then((response) => {
-        resolve(response.data.data.user.legacy);
-      })
-      .catch((err) => reject(err));
+  return new Promise(async (resolve, reject) => {
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: [
+        "--disable-gpu",
+        "--disable-dev-shm-usage",
+        "--disable-setuid-sandbox",
+        "--no-first-run",
+        "--no-sandbox",
+        "--no-zygote",
+        "--single-process",
+      ],
+    });
+    try {
+      const page = await browser.newPage();
+      await page.setUserAgent(
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+      );
+      await page.goto(`https://twitter.com/${screen_name}`);
+      const [response] = await Promise.all([
+        page.waitForResponse((response) =>
+          response.url().includes("UserByScreenNameWithoutResults")
+        ),
+      ]);
+      const user = response.json().data.data.user;
+
+      resolve({
+        id: Number(user.rest_id),
+        id_str: user.rest_id,
+        screen_name: screen_name,
+        screen_name_low: screen_name.toLowerCase(),
+        location: user.legacy.location || "",
+        description: user.legacy.description || "",
+        url: user.legacy.url || "",
+        protected: user.legacy.url || false,
+        followers_count: user.legacy.followers_count,
+        friends_count: user.legacy.friends_count,
+        created_at: user.legacy.created_at,
+        favourites_count: user.legacy.favourites_count,
+        statuses_count: user.legacy.statuses_count,
+        media_count: user.legacy.media_count,
+        profile_image_url: user.legacy.profile_image_url_https,
+        friends_list: [],
+        followers_list: [],
+      });
+    } catch (error) {
+      reject(error);
+    } finally {
+      await browser.close();
+    }
   });
 };
 

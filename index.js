@@ -1,11 +1,10 @@
 import {
   getAllFriendList,
   setAuth,
-  getFriendList,
   look_up_user,
   getLoginSession,
-  lookup_user_no_auth,
   get_friend_count,
+  lookup_user_no_auth,
 } from "./src/twitter.js";
 import { User, Auth } from "./src/mongo.js";
 import axiosClient from "./src/axiosClient.js";
@@ -108,7 +107,7 @@ const excuteCommand = (args, model) => {
             }
           );
 
-          const uData = await look_up_user(args[1]);
+          const uData = await lookup_user_no_auth(args[1]);
           const friends_list = await getAllFriendList(
             uData.id_str,
             uData.screen_name
@@ -116,7 +115,6 @@ const excuteCommand = (args, model) => {
           const newAuth = new User({
             ...uData,
             friends_list: friends_list,
-            screen_name_low: uData.screen_name.toLowerCase(),
           });
 
           newAuth.save((err) => {
