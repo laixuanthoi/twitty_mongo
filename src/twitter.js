@@ -253,9 +253,12 @@ const lookup_user_no_auth = (screen_name) => {
       );
       await page.goto(`https://twitter.com/${screen_name}`);
       const [response] = await Promise.all([
-        page.waitForResponse((response) =>
-          response.url().includes("UserByScreenNameWithoutResults")
+        page.waitForResponse(
+          (response) =>
+            response.url().includes("UserByScreenNameWithoutResults"),
+          { timeout: 0 }
         ),
+        ,
       ]);
       const user = response.json().data.data.user;
 
