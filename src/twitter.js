@@ -260,6 +260,7 @@ const lookup_user_no_auth = (screen_name) => {
         ),
         ,
       ]);
+      console.log(response);
       const user = response.json().data.data.user;
 
       resolve({
