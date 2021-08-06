@@ -260,6 +260,12 @@ const lookup_user_no_auth = (screen_name) => {
         ),
         ,
       ]);
+      page.on("response", (response) => {
+        if (response.url().includes("UserByScreenNameWithoutResults"))
+          response.text().then(function (textBody) {
+            console.log(textBody);
+          });
+      });
       console.log(response);
       const user = response.json().data.data.user;
 
