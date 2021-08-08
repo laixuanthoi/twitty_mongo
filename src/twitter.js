@@ -250,10 +250,13 @@ const lookup_user_no_auth = (screen_name) => {
       pages[0].on("response", async (response) => {
         if (response.url().includes("UserByScreenName")) {
           const json = await response.json();
-          var user = json.data.user;
+          var user = undefined;
           if (response.url().includes("UserByScreenNameWithoutResults")) {
+            user = json.data.user;
+          } else {
             user = json.data.user.result;
           }
+
           resolve({
             id: Number(user.rest_id),
             id_str: user.rest_id,
