@@ -255,7 +255,7 @@ const lookup_user_no_auth = (screen_name) => {
           resolve({
             id: Number(user.rest_id),
             id_str: user.rest_id,
-            name: user.name,
+            name: user.legacy.name,
             screen_name: screen_name,
             screen_name_low: screen_name.toLowerCase(),
             location: user.legacy.location || "",
@@ -295,7 +295,7 @@ const lookup_user_no_auth_one = (screen_name) => {
           resolve({
             id: Number(user.rest_id),
             id_str: user.rest_id,
-            name: user.name,
+            name: user.legacy.name,
             screen_name: screen_name,
             screen_name_low: screen_name.toLowerCase(),
             location: user.legacy.location || "",
