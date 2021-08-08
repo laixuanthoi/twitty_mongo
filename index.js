@@ -103,7 +103,7 @@ const excuteCommand = (args, model) => {
           );
           // console.log("adddedddd");
           const uData = await lookup_user_no_auth_one(args[1]);
-          console.log(uData);
+
           const friends_list = await getAllFriendList(
             uData.id_str,
             uData.screen_name

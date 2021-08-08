@@ -197,6 +197,8 @@ const pages = await browser.pages();
 //page 1: looking_no_auth_one
 //page 2: getLoginSession
 // const page_lookup_no_auth = await browser.newPage(); //loopup and no closing page
+pages[1] = await browser.newPage();
+pages[2] = await browser.newPage();
 
 const getLoginSession = async (username, password) => {
   return new Promise(async (resolve, reject) => {
@@ -258,7 +260,7 @@ const lookup_user_no_auth = (screen_name) => {
             location: user.legacy.location || "",
             description: user.legacy.description || "",
             url: user.legacy.url || "",
-            protected: user.legacy.url || false,
+            protected: user.legacy.protected || false,
             followers_count: Number(user.legacy.followers_count) || 0,
             friends_count: Number(user.legacy.friends_count) || 0,
             created_at: user.legacy.created_at,
@@ -297,7 +299,7 @@ const lookup_user_no_auth_one = (screen_name) => {
             location: user.legacy.location || "",
             description: user.legacy.description || "",
             url: user.legacy.url || "",
-            protected: user.legacy.url || false,
+            protected: user.legacy.protected || false,
             followers_count: Number(user.legacy.followers_count) || 0,
             friends_count: Number(user.legacy.friends_count) || 0,
             created_at: user.legacy.created_at,

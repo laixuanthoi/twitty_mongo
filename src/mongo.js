@@ -2,8 +2,8 @@ import mongoose from "mongoose";
 const { Schema } = mongoose;
 
 mongoose.connect(
-  // "mongodb://127.0.0.1:27017/twitty",
-  "mongodb://143.198.191.107:27017/twitty",
+  "mongodb://127.0.0.1:27017/twitty",
+  // "mongodb://143.198.191.107:27017/twitty",
   {
     useNewUrlParser: true,
     useUnifiedTopology: true,
