@@ -180,7 +180,7 @@ const setAuth = (session) => {
 };
 
 const browser = await puppeteer.launch({
-  headless: false,
+  headless: true,
   args: [
     "--disable-gpu",
     "--disable-dev-shm-usage",
