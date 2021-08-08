@@ -5,18 +5,12 @@ import {
   getLoginSession,
   get_friend_count,
   lookup_user_no_auth,
+  lookup_user_no_auth_one,
 } from "./src/twitter.js";
 import { User, Auth } from "./src/mongo.js";
 import axiosClient from "./src/axiosClient.js";
 
-// import { bot } from "./src/telegrambot.js";
-
-import TelegramBot from "node-telegram-bot-api";
-
-// const token = "1844525211:AAH5lzam-fffd6pLh8Li6rH8uXpS8Gh5lKU";
-const token = "1936409627:AAGggXnLmHSQ8p-wgu5CFNNBfa7Sha2WCcw";
-
-const bot = new TelegramBot(token, { polling: true });
+import { bot } from "./src/telegrambot.js";
 
 const loginSession = {
   bearer_token:
@@ -107,8 +101,9 @@ const excuteCommand = (args, model) => {
               if (is_exist) reject("User already exists");
             }
           );
-
-          const uData = await lookup_user_no_auth(args[1]);
+          // console.log("adddedddd");
+          const uData = await lookup_user_no_auth_one(args[1]);
+          console.log(uData);
           const friends_list = await getAllFriendList(
             uData.id_str,
             uData.screen_name
@@ -234,10 +229,9 @@ const spydingFriend = async (dt) => {
       for (let i = 0; i < users.length; i++) {
         const user = users[i];
 
-        var friends_count = await get_friend_count(user.screen_name);
-        friends_count = friends_count.replace(/,/, "");
-        friends_count = Number(friends_count);
-        if (friends_count != user.friends_count) {
+        const uData = await lookup_user_no_auth(user.screen_name);
+
+        if (uData.friends_count != user.friends_count) {
           //has new friend
           const new_friend_list = await getAllFriendList(
             user.id_str,
@@ -276,9 +270,10 @@ const spydingFriend = async (dt) => {
         await User.updateOne(
           { screen_name_low: user.screen_name_low },
           {
-            friends_count: friends_count,
+            friends_count: uData.friends_count,
           }
         );
+        await delay(dt);
       }
     }
     await delay(dt);

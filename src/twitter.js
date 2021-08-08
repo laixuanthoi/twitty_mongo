@@ -166,35 +166,56 @@ const look_up_user = async (screen_name) => {
   });
 };
 
+const setAuth = (session) => {
+  const { bearer_token, csrf_token, cookies } = session;
+
+  axiosClient.defaults.headers = {
+    authorization: bearer_token,
+    cookie: cookies,
+    "x-csrf-token": csrf_token,
+    authority: "api.twitter.com",
+    "user-agent":
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+  };
+};
+
+const browser = await puppeteer.launch({
+  headless: false,
+  args: [
+    "--disable-gpu",
+    "--disable-dev-shm-usage",
+    "--disable-setuid-sandbox",
+    "--no-first-run",
+    "--no-sandbox",
+    "--no-zygote",
+    "--single-process",
+  ],
+});
+const pages = await browser.pages();
+
+//page 0 : looking_no_auth
+//page 1: looking_no_auth_one
+//page 2: getLoginSession
+// const page_lookup_no_auth = await browser.newPage(); //loopup and no closing page
+
 const getLoginSession = async (username, password) => {
   return new Promise(async (resolve, reject) => {
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: [
-        "--disable-gpu",
-        "--disable-dev-shm-usage",
-        "--disable-setuid-sandbox",
-        "--no-first-run",
-        "--no-sandbox",
-        "--no-zygote",
-        "--single-process",
-      ],
-    });
     try {
-      const page = await browser.newPage();
-      await page.setUserAgent(
+      await pages[2].setUserAgent(
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
       );
-      await page.goto("https://twitter.com/login");
-      await page.waitForSelector("input[name='session[username_or_email]']");
-      await page.type("input[name='session[username_or_email]']", username);
-      await page.type("input[name='session[password]']", password);
+      await pages[2].goto("https://twitter.com/login");
+      await pages[2].waitForSelector(
+        "input[name='session[username_or_email]']"
+      );
+      await pages[2].type("input[name='session[username_or_email]']", username);
+      await pages[2].type("input[name='session[password]']", password);
 
-      await page.click('div[data-testid="LoginForm_Login_Button"]');
-      await page.waitForTimeout(1000);
-      await page.goto("https://twitter.com/home");
+      await pages[2].click('div[data-testid="LoginForm_Login_Button"]');
+      await pages[2].waitForTimeout(1000);
+      await pages[2].goto("https://twitter.com/home");
       const [response] = await Promise.all([
-        page.waitForResponse((response) =>
+        pages[2].waitForResponse((response) =>
           response
             .url()
             .includes("https://twitter.com/i/api/2/timeline/home.json")
@@ -213,109 +234,95 @@ const getLoginSession = async (username, password) => {
       });
     } catch (error) {
       reject(error);
-    } finally {
-      await browser.close();
     }
   });
-};
-
-const setAuth = (session) => {
-  const { bearer_token, csrf_token, cookies } = session;
-
-  axiosClient.defaults.headers = {
-    authorization: bearer_token,
-    cookie: cookies,
-    "x-csrf-token": csrf_token,
-    authority: "api.twitter.com",
-    "user-agent":
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-  };
 };
 
 const lookup_user_no_auth = (screen_name) => {
   return new Promise(async (resolve, reject) => {
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: [
-        "--disable-gpu",
-        "--disable-dev-shm-usage",
-        "--disable-setuid-sandbox",
-        "--no-first-run",
-        "--no-sandbox",
-        "--no-zygote",
-        "--single-process",
-      ],
-    });
     try {
-      const page = await browser.newPage();
-      await page.setUserAgent(
+      await pages[0].setUserAgent(
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
       );
-      await page.goto(`https://twitter.com/${screen_name}`);
-      const [response] = await Promise.all([
-        page.waitForResponse(
-          (response) =>
-            response.url().includes("UserByScreenNameWithoutResults"),
-          { timeout: 0 }
-        ),
-        ,
-      ]);
-      page.on("response", (response) => {
-        if (response.url().includes("UserByScreenNameWithoutResults"))
-          console.log(response);
-        response.text().then(function (textBody) {
-          console.log(textBody);
-        });
-      });
-      // console.log(response);
-      const user = response.json().data.data.user;
+      await pages[0].goto(`https://twitter.com/${screen_name}`);
+      pages[0].on("response", async (response) => {
+        if (response.url().includes("UserByScreenNameWithoutResults")) {
+          const json = await response.json();
 
-      resolve({
-        id: Number(user.rest_id),
-        id_str: user.rest_id,
-        screen_name: screen_name,
-        screen_name_low: screen_name.toLowerCase(),
-        location: user.legacy.location || "",
-        description: user.legacy.description || "",
-        url: user.legacy.url || "",
-        protected: user.legacy.url || false,
-        followers_count: user.legacy.followers_count,
-        friends_count: user.legacy.friends_count,
-        created_at: user.legacy.created_at,
-        favourites_count: user.legacy.favourites_count,
-        statuses_count: user.legacy.statuses_count,
-        media_count: user.legacy.media_count,
-        profile_image_url: user.legacy.profile_image_url_https,
-        friends_list: [],
-        followers_list: [],
+          const user = json.data.user;
+          resolve({
+            id: Number(user.rest_id),
+            id_str: user.rest_id,
+            screen_name: screen_name,
+            screen_name_low: screen_name.toLowerCase(),
+            location: user.legacy.location || "",
+            description: user.legacy.description || "",
+            url: user.legacy.url || "",
+            protected: user.legacy.url || false,
+            followers_count: Number(user.legacy.followers_count) || 0,
+            friends_count: Number(user.legacy.friends_count) || 0,
+            created_at: user.legacy.created_at,
+            favourites_count: Number(user.legacy.favourites_count) || 0,
+            statuses_count: Number(user.legacy.statuses_count) || 0,
+            media_count: Number(user.legacy.media_count) || 0,
+            profile_image_url: user.legacy.profile_image_url_https,
+            friends_list: [],
+            followers_list: [],
+          });
+        }
       });
     } catch (error) {
       reject(error);
-    } finally {
-      await browser.close();
     }
   });
 };
 
-const browser1 = await puppeteer.launch({
-  headless: true,
-  args: [
-    "--disable-gpu",
-    "--disable-dev-shm-usage",
-    "--disable-setuid-sandbox",
-    "--no-first-run",
-    "--no-sandbox",
-    "--no-zygote",
-    "--single-process",
-  ],
-});
-const page1 = await browser1.newPage();
-await page1.setUserAgent(
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-);
-const get_friend_count = (screen_name) => {
+const lookup_user_no_auth_one = (screen_name) => {
   return new Promise(async (resolve, reject) => {
     try {
+      await pages[1].setUserAgent(
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+      );
+      await pages[1].goto(`https://twitter.com/${screen_name}`);
+      pages[1].on("response", async (response) => {
+        if (response.url().includes("UserByScreenNameWithoutResults")) {
+          const json = await response.json();
+
+          const user = json.data.user;
+          resolve({
+            id: Number(user.rest_id),
+            id_str: user.rest_id,
+            screen_name: screen_name,
+            screen_name_low: screen_name.toLowerCase(),
+            location: user.legacy.location || "",
+            description: user.legacy.description || "",
+            url: user.legacy.url || "",
+            protected: user.legacy.url || false,
+            followers_count: Number(user.legacy.followers_count) || 0,
+            friends_count: Number(user.legacy.friends_count) || 0,
+            created_at: user.legacy.created_at,
+            favourites_count: Number(user.legacy.favourites_count) || 0,
+            statuses_count: Number(user.legacy.statuses_count) || 0,
+            media_count: Number(user.legacy.media_count) || 0,
+            profile_image_url: user.legacy.profile_image_url_https,
+            friends_list: [],
+            followers_list: [],
+          });
+        }
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
+const get_friend_count = (screen_name) => {
+  return new Promise(async (resolve, reject) => {
+    const page1 = await browser.newPage();
+    try {
+      await page1.setUserAgent(
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+      );
       await page1.goto(`https://twitter.com/${screen_name}`);
       const e = `a[href="/${screen_name}/following"]>span>span`;
       await page1.waitForSelector(e, { timeout: 0 });
@@ -328,7 +335,7 @@ const get_friend_count = (screen_name) => {
     } catch (error) {
       reject(error);
     } finally {
-      // await browser1.close();
+      await page1.close();
     }
   });
 };
@@ -343,4 +350,5 @@ export {
   setAuth,
   lookup_user_no_auth,
   get_friend_count,
+  lookup_user_no_auth_one,
 };
