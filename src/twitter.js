@@ -273,6 +273,31 @@ const lookup_user_no_auth = (screen_name) => {
             followers_list: [],
           });
         }
+        if (response.url().includes("UserByScreenName")) {
+          const json = await response.json();
+
+          const user = json.data.user.result;
+          resolve({
+            id: Number(user.rest_id),
+            id_str: user.rest_id,
+            name: user.legacy.name,
+            screen_name: screen_name,
+            screen_name_low: screen_name.toLowerCase(),
+            location: user.legacy.location || "",
+            description: user.legacy.description || "",
+            url: user.legacy.url || "",
+            protected: user.legacy.protected || false,
+            followers_count: Number(user.legacy.followers_count) || 0,
+            friends_count: Number(user.legacy.friends_count) || 0,
+            created_at: user.legacy.created_at,
+            favourites_count: Number(user.legacy.favourites_count) || 0,
+            statuses_count: Number(user.legacy.statuses_count) || 0,
+            media_count: Number(user.legacy.media_count) || 0,
+            profile_image_url: user.legacy.profile_image_url_https,
+            friends_list: [],
+            followers_list: [],
+          });
+        }
       });
     } catch (error) {
       reject(error);
@@ -292,6 +317,32 @@ const lookup_user_no_auth_one = (screen_name) => {
           const json = await response.json();
 
           const user = json.data.user;
+          resolve({
+            id: Number(user.rest_id),
+            id_str: user.rest_id,
+            name: user.legacy.name,
+            screen_name: screen_name,
+            screen_name_low: screen_name.toLowerCase(),
+            location: user.legacy.location || "",
+            description: user.legacy.description || "",
+            url: user.legacy.url || "",
+            protected: user.legacy.protected || false,
+            followers_count: Number(user.legacy.followers_count) || 0,
+            friends_count: Number(user.legacy.friends_count) || 0,
+            created_at: user.legacy.created_at,
+            favourites_count: Number(user.legacy.favourites_count) || 0,
+            statuses_count: Number(user.legacy.statuses_count) || 0,
+            media_count: Number(user.legacy.media_count) || 0,
+            profile_image_url: user.legacy.profile_image_url_https,
+            friends_list: [],
+            followers_list: [],
+          });
+        }
+
+        if (response.url().includes("UserByScreenName")) {
+          const json = await response.json();
+
+          const user = json.data.user.result;
           resolve({
             id: Number(user.rest_id),
             id_str: user.rest_id,
